@@ -22,12 +22,12 @@ public partial class GameForm : Form
         };
         timer.Start();
 
-        this.KeyDown += (s, e) =>
+        KeyDown += (s, e) =>
         {
             game.HandleKey(e.KeyCode);
         };
         
-        this.DoubleBuffered = true;
+        DoubleBuffered = true;
     }
 
     protected override void OnPaint(PaintEventArgs e)
