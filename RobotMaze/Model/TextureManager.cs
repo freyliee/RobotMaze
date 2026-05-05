@@ -1,8 +1,8 @@
-namespace RobotMaze;
+namespace RobotMaze.Model;
 
 public class TextureManager
 {
-    private Dictionary<string, Image> cache = new Dictionary<string, Image>();
+    private Dictionary<string, Image> cache = new();
 
     public Image GetTexture(string name)
     {

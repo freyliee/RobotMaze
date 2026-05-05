@@ -1,32 +1,53 @@
-namespace RobotMaze;
+using RobotMaze.Model.RobotModules;
+
+namespace RobotMaze.Model;
 
 public class Game
 {
-    private readonly GameView view;
     public TextureManager Textures { get; }
     public Robot Robot { get; }
     public GameMap Map { get; }
-    private Keys? pendingKey;
+    public List<IRobotModule> AvailableModules { get; }
+    public Dictionary<Point, IRobotModule> MapModules { get; }
     
+    public bool IsExecuting { get; private set; }
+    public int CurrentModuleIndex { get; private set; } = -1;
+    private int executionTimer = 0;
+    private const int DelayFrames = 15; 
+
     public Action OnGoalReached;
+    public Action OnGameOver;
     
     public Game(LevelData level)
     {
-        view = new GameView();
         Textures = new TextureManager();
-        Robot = new Robot(level.StartX, level.StartY);
+        Robot = new Robot(level.StartX, level.StartY, level.ModuleSlots);
         
         Map = new GameMap(level.Map);
+        AvailableModules = new List<IRobotModule>(level.InitialModules);
+        MapModules = new Dictionary<Point, IRobotModule>(level.MapModules);
+    }
+
+    public void StartExecution()
+    {
+        if (IsExecuting) return;
+        
+        bool hasModules = false;
+        foreach (var m in Robot.Modules) if (m != null) hasModules = true;
+        if (!hasModules) return;
+
+        IsExecuting = true;
+        CurrentModuleIndex = 0;
+        executionTimer = 0;
     }
 
     public void Update()
     {
-        if (pendingKey != null)
+        if (IsExecuting)
         {
-            HandleMovement(pendingKey.Value);
-            pendingKey = null;
+            UpdateExecution();
         }
-        
+
         if (Map.Tiles[Robot.X, Robot.Y] == TileType.Goal)
         {
             if (OnGoalReached != null)
@@ -34,50 +55,84 @@ public class Game
                 OnGoalReached();
             }
         }
-    }
 
-    private void HandleMovement(Keys key)
-    {
-        int nextX = Robot.X;
-        int nextY = Robot.Y;
-
-        if (key == Keys.W)
+        if (Map.Tiles[Robot.X, Robot.Y] == TileType.Spikes)
         {
-            if (Robot.Direction == 0) nextY--;
-            if (Robot.Direction == 1) nextX++;
-            if (Robot.Direction == 2) nextY++;
-            if (Robot.Direction == 3) nextX--;
-
-            if (Map.IsWalkable(nextX, nextY))
+            if (OnGameOver != null)
             {
-                Robot.MoveForward();
+                OnGameOver();
             }
         }
-        
-        if (key == Keys.S)
-        {
-            if (Robot.Direction == 0) nextY++;
-            if (Robot.Direction == 1) nextX--;
-            if (Robot.Direction == 2) nextY--;
-            if (Robot.Direction == 3) nextX++;
 
-            if (Map.IsWalkable(nextX, nextY))
+        Point robotPos = new Point(Robot.X, Robot.Y);
+        if (MapModules.ContainsKey(robotPos))
+        {
+            AvailableModules.Add(MapModules[robotPos]);
+            MapModules.Remove(robotPos);
+        }
+
+        CheckLossConditions();
+    }
+
+    private void CheckLossConditions()
+    {
+        if (IsExecuting) return;
+
+        bool hasModulesInSlots = false;
+        for (int i = 0; i < Robot.Modules.Length; i++)
+        {
+            if (Robot.Modules[i] != null)
             {
-                Robot.MoveBackward();
+                hasModulesInSlots = true;
+                break;
             }
         }
+
+        bool robotOnTarget = Map.Tiles[Robot.X, Robot.Y] == TileType.Goal || Map.Tiles[Robot.X, Robot.Y] == TileType.Spikes;
+
+        if (AvailableModules.Count == 0 && !hasModulesInSlots && !robotOnTarget)
+        {
+            if (OnGameOver != null)
+            {
+                OnGameOver();
+            }
+        }
+    }
+
+    private void UpdateExecution()
+    {
+        if (CurrentModuleIndex >= Robot.Modules.Length || Robot.Modules[CurrentModuleIndex] == null)
+        {
+            FinishExecution();
+            return;
+        }
+
+        executionTimer++;
+        if (executionTimer >= DelayFrames)
+        {
+            executionTimer = 0;
+            IRobotModule module = Robot.Modules[CurrentModuleIndex];
+            
+            if (module.Execute(Robot, Map))
+            {
+                Robot.Modules[CurrentModuleIndex] = null;
+                CurrentModuleIndex++;
+            }
+        }
+    }
+
+    private void FinishExecution()
+    {
+        IsExecuting = false;
+        CurrentModuleIndex = -1;
         
-        if (key == Keys.A) Robot.TurnLeft();
-        if (key == Keys.D) Robot.TurnRight();
+        for (int i = 0; i < Robot.Modules.Length; i++)
+        {
+            Robot.Modules[i] = null;
+        }
     }
 
-    public void Draw(Graphics g)
-    {
-        view.Draw(g, Robot, Map, Textures);
-    }
-
-    public void HandleKey(Keys key)
-    {
-        pendingKey = key;
-    }
+    // public void HandleKey(Keys key)
+    // {
+    // }
 }

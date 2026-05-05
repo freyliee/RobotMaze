@@ -1,16 +1,20 @@
-namespace RobotMaze;
+using RobotMaze.Model.RobotModules;
+
+namespace RobotMaze.Model;
 
 public class Robot
 {
     public int X { get; private set; }
     public int Y { get; private set; }
     public int Direction { get; private set; }
+    public IRobotModule[] Modules { get; }
 
-    public Robot(int x, int y)
+    public Robot(int x, int y, int moduleSlots)
     {
         X = x;
         Y = y;
         Direction = 0;
+        Modules = new IRobotModule[moduleSlots];
     }
 
     public void MoveForward()

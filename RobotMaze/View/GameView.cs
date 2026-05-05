@@ -1,11 +1,26 @@
-namespace RobotMaze;
+using System.Drawing.Drawing2D;
+using RobotMaze.Model.RobotModules;
+
+namespace RobotMaze.View;
+
+using Model;
 
 public class GameView
 {
-    public void Draw(Graphics g, Robot robot, GameMap map, TextureManager textures)
+    public void Draw(Graphics g, Game game, IRobotModule draggingModule = null, IRobotModule hoveredModule = null, Point mousePos = default)
     {
+        g.InterpolationMode = InterpolationMode.NearestNeighbor;
+        g.PixelOffsetMode = PixelOffsetMode.Half;
+
+        Robot robot = game.Robot;
+        GameMap map = game.Map;
+        TextureManager textures = game.Textures;
+
         float screenWidth = g.VisibleClipBounds.Width;
         float screenHeight = g.VisibleClipBounds.Height;
+
+        float leftPanelWidth = screenWidth * 0.15f;
+        float bottomPanelHeight = screenHeight * 0.15f;
 
         float targetWidth = screenWidth * 0.65f;
         float targetHeight = screenHeight * 0.65f;
@@ -32,6 +47,16 @@ public class GameView
                 if (map.Tiles[x, y] == TileType.Goal)
                 {
                     g.FillRectangle(Brushes.Green, offsetX + x * cellSize, offsetY + y * cellSize, cellSize, cellSize);
+                }
+                if (map.Tiles[x, y] == TileType.Spikes)
+                {
+                    g.FillRectangle(Brushes.DarkGray, offsetX + x * cellSize, offsetY + y * cellSize, cellSize, cellSize);
+                }
+
+                Point p = new Point(x, y);
+                if (game.MapModules.ContainsKey(p))
+                {
+                    g.FillEllipse(Brushes.Orange, offsetX + x * cellSize + cellSize/4, offsetY + y * cellSize + cellSize/4, cellSize/2, cellSize/2);
                 }
             }
         }
@@ -60,5 +85,131 @@ public class GameView
             offsetX + robot.X * cellSize + cellSize / 2 + dirX * (cellSize / 3) - indicatorSize / 2, 
             offsetY + robot.Y * cellSize + cellSize / 2 + dirY * (cellSize / 3) - indicatorSize / 2, 
             indicatorSize, indicatorSize);
+
+        float slotSize = bottomPanelHeight * 0.8f;
+        float slotsTotalWidth = robot.Modules.Length * slotSize + (robot.Modules.Length - 1) * 10;
+        float slotsStartX = (screenWidth - slotsTotalWidth) / 2;
+        float slotsStartY = screenHeight - bottomPanelHeight + (bottomPanelHeight - slotSize) / 2;
+
+        for (int i = 0; i < robot.Modules.Length; i++)
+        {
+            float x = slotsStartX + i * (slotSize + 10);
+            
+            Image slotImg = textures.GetTexture("slot.png");
+            if (slotImg != null)
+            {
+                g.DrawImage(slotImg, x, slotsStartY, slotSize, slotSize);
+            }
+            else
+            {
+                g.DrawRectangle(Pens.Black, x, slotsStartY, slotSize, slotSize);
+            }
+
+            if (robot.Modules[i] != null && robot.Modules[i] != draggingModule)
+            {
+                Image modImg = textures.GetTexture(robot.Modules[i].TextureName);
+                if (modImg != null)
+                {
+                    g.DrawImage(modImg, x + 5, slotsStartY + 5, slotSize - 10, slotSize - 10);
+                }
+                else
+                {
+                    g.FillRectangle(Brushes.Yellow, x + 5, slotsStartY + 5, slotSize - 10, slotSize - 10);
+                    g.DrawString(robot.Modules[i].Name.Substring(0, Math.Min(2, robot.Modules[i].Name.Length)), 
+                        new Font("Arial", slotSize / 4), Brushes.Black, x + 10, slotsStartY + 10);
+                }
+            }
+
+            if (game.IsExecuting && game.CurrentModuleIndex == i)
+            {
+                using (SolidBrush highlightBrush = new SolidBrush(Color.FromArgb(100, Color.LightGreen)))
+                {
+                    g.FillRectangle(highlightBrush, x, slotsStartY, slotSize, slotSize);
+                }
+            }
+        }
+
+        float moduleBoxSize = leftPanelWidth * 0.4f;
+        for (int i = 0; i < game.AvailableModules.Count; i++)
+        {
+            int col = i % 2;
+            int row = i / 2;
+            float moduleBoxX = (leftPanelWidth / 2 - moduleBoxSize) / 2 + col * (leftPanelWidth / 2);
+            float y = 50 + row * (moduleBoxSize + 10);
+            
+            if (game.AvailableModules[i] != draggingModule)
+            {
+                Image modImg = textures.GetTexture(game.AvailableModules[i].TextureName);
+                if (modImg != null)
+                {
+                    g.DrawImage(modImg, moduleBoxX, y, moduleBoxSize, moduleBoxSize);
+                }
+                else
+                {
+                    g.FillRectangle(Brushes.Yellow, moduleBoxX, y, moduleBoxSize, moduleBoxSize);
+                    g.DrawRectangle(Pens.Black, moduleBoxX, y, moduleBoxSize, moduleBoxSize);
+                    g.DrawString(game.AvailableModules[i].Name.Substring(0, Math.Min(2, game.AvailableModules[i].Name.Length)), 
+                        new Font("Arial", moduleBoxSize / 4), Brushes.Black, moduleBoxX + 5, y + 5);
+                }
+            }
+        }
+
+        if (draggingModule != null)
+        {
+            float dragSize = Math.Max(slotSize, moduleBoxSize);
+            Image modImg = textures.GetTexture(draggingModule.TextureName);
+            if (modImg != null)
+            {
+                g.DrawImage(modImg, mousePos.X - dragSize / 2, mousePos.Y - dragSize / 2, dragSize, dragSize);
+            }
+            else
+            {
+                g.FillRectangle(Brushes.Yellow, mousePos.X - dragSize / 2, mousePos.Y - dragSize / 2, dragSize, dragSize);
+                g.DrawRectangle(Pens.Black, mousePos.X - dragSize / 2, mousePos.Y - dragSize / 2, dragSize, dragSize);
+                g.DrawString(draggingModule.Name.Substring(0, Math.Min(2, draggingModule.Name.Length)), 
+                    new Font("Arial", dragSize / 4), Brushes.Black, mousePos.X - dragSize / 2 + 5, mousePos.Y - dragSize / 2 + 5);
+            }
+        }
+
+        float runBtnWidth = 100;
+        float runBtnHeight = 50;
+        float runBtnX = screenWidth - runBtnWidth - 20;
+        float runBtnY = screenHeight - runBtnHeight - 20;
+        g.FillRectangle(Brushes.LightGreen, runBtnX, runBtnY, runBtnWidth, runBtnHeight);
+        g.DrawRectangle(Pens.Black, runBtnX, runBtnY, runBtnWidth, runBtnHeight);
+        g.DrawString("ЗАПУСК", new Font("Arial", 12, FontStyle.Bold), Brushes.Black, runBtnX + 10, runBtnY + 15);
+
+        float restartBtnWidth = 100;
+        float restartBtnHeight = 40;
+        float restartBtnX = screenWidth - restartBtnWidth - 20;
+        float restartBtnY = 20;
+        g.FillRectangle(Brushes.LightCoral, restartBtnX, restartBtnY, restartBtnWidth, restartBtnHeight);
+        g.DrawRectangle(Pens.Black, restartBtnX, restartBtnY, restartBtnWidth, restartBtnHeight);
+        g.DrawString("РЕСТАРТ", new Font("Arial", 10, FontStyle.Bold), Brushes.Black, restartBtnX + 10, restartBtnY + 10);
+
+        if (hoveredModule != null && draggingModule == null)
+        {
+            float tooltipWidth = 200;
+            float tooltipHeight = 100;
+            float tooltipX = mousePos.X + 10;
+            float tooltipY = mousePos.Y + 10;
+
+            if (tooltipX + tooltipWidth > screenWidth) tooltipX = mousePos.X - tooltipWidth - 10;
+            if (tooltipY + tooltipHeight > screenHeight) tooltipY = mousePos.Y - tooltipHeight - 10;
+
+            Image tooltipBg = textures.GetTexture(hoveredModule.TooltipTextureName);
+            if (tooltipBg != null)
+            {
+                g.DrawImage(tooltipBg, tooltipX, tooltipY, tooltipWidth, tooltipHeight);
+            }
+            else
+            {
+                g.FillRectangle(Brushes.Gray, tooltipX, tooltipY, tooltipWidth, tooltipHeight);
+                g.DrawRectangle(Pens.Black, tooltipX, tooltipY, tooltipWidth, tooltipHeight);
+            }
+
+            g.DrawString(hoveredModule.Name, new Font("Arial", 10, FontStyle.Bold), Brushes.White, tooltipX + 5, tooltipY + 5);
+            g.DrawString(hoveredModule.Description, new Font("Arial", 9), Brushes.White, new RectangleF(tooltipX + 5, tooltipY + 25, tooltipWidth - 10, tooltipHeight - 30));
+        }
     }
 }

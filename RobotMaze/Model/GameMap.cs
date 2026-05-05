@@ -1,4 +1,4 @@
-namespace RobotMaze;
+namespace RobotMaze.Model;
 
 public class GameMap
 {

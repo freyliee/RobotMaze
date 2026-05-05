@@ -1,6 +1,8 @@
-namespace RobotMaze;
+namespace RobotMaze.View;
 
-public partial class LevelSelectForm : Form
+using Model;
+
+public class LevelSelectForm : Form
 {
     private TextureManager textureManager;
 
@@ -32,9 +34,15 @@ public partial class LevelSelectForm : Form
                 Image lockImg = textureManager.GetTexture("lock.png");
                 if (lockImg != null) btn.Image = lockImg;
             }
-            else
+            else if (i <= LevelManager.CompletedLevelIndex)
             {
                 btn.BackColor = Color.LightGreen;
+                Image levelImg = textureManager.GetTexture("level" + i + ".png");
+                if (levelImg != null) btn.Image = levelImg;
+            }
+            else
+            {
+                btn.BackColor = Color.LightSkyBlue;
                 Image levelImg = textureManager.GetTexture("level" + i + ".png");
                 if (levelImg != null) btn.Image = levelImg;
             }
@@ -45,7 +53,7 @@ public partial class LevelSelectForm : Form
                     GameForm gameForm = new GameForm(levelData, currentIdx);
                     gameForm.ApplyState(this);
                     gameForm.Show();
-                    this.Hide();
+                    Hide();
                 }
             };
 
@@ -54,13 +62,14 @@ public partial class LevelSelectForm : Form
 
         Button backButton = new Button();
         backButton.Text = "Назад";
+        backButton.ForeColor = Color.White;
         backButton.Size = new Size(100, 40);
         backButton.Location = new Point(50, 50);
         backButton.Click += (s, e) => {
             MainMenuForm mainMenu = new MainMenuForm();
             mainMenu.ApplyState(this);
             mainMenu.Show();
-            this.Hide();
+            Hide();
         };
         Controls.Add(backButton);
 
@@ -85,7 +94,7 @@ public partial class LevelSelectForm : Form
                 MainMenuForm mainMenu = new MainMenuForm();
                 mainMenu.ApplyState(this);
                 mainMenu.Show();
-                this.Hide();
+                Hide();
             }
         };
 
@@ -94,12 +103,12 @@ public partial class LevelSelectForm : Form
 
     public void ApplyState(Form other)
     {
-        this.WindowState = other.WindowState;
-        this.FormBorderStyle = other.FormBorderStyle;
-        if (this.WindowState == FormWindowState.Normal)
+        WindowState = other.WindowState;
+        FormBorderStyle = other.FormBorderStyle;
+        if (WindowState == FormWindowState.Normal)
         {
-            this.Size = other.Size;
-            this.Location = other.Location;
+            Size = other.Size;
+            Location = other.Location;
         }
     }
 

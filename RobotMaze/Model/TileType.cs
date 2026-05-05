@@ -1,8 +1,9 @@
-namespace RobotMaze;
+namespace RobotMaze.Model;
 
 public enum TileType
 {
     Floor,
     Wall,
-    Goal
+    Goal,
+    Spikes
 }

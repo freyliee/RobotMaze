@@ -16,7 +16,6 @@
 
     <ItemGroup>
       <Folder Include="Assets\Textures\" />
-      <Folder Include="Controller\" />
     </ItemGroup>
 
 </Project>

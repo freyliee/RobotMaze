@@ -1,6 +1,6 @@
-namespace RobotMaze;
+namespace RobotMaze.View;
 
-public partial class MainMenuForm : Form
+public class MainMenuForm : Form
 {
     public MainMenuForm()
     {
@@ -26,7 +26,7 @@ public partial class MainMenuForm : Form
             LevelSelectForm levelSelect = new LevelSelectForm();
             levelSelect.ApplyState(this);
             levelSelect.Show();
-            this.Hide();
+            Hide();
         };
         Controls.Add(playButton);
 
@@ -64,12 +64,12 @@ public partial class MainMenuForm : Form
 
     public void ApplyState(Form other)
     {
-        this.WindowState = other.WindowState;
-        this.FormBorderStyle = other.FormBorderStyle;
-        if (this.WindowState == FormWindowState.Normal)
+        WindowState = other.WindowState;
+        FormBorderStyle = other.FormBorderStyle;
+        if (WindowState == FormWindowState.Normal)
         {
-            this.Size = other.Size;
-            this.Location = other.Location;
+            Size = other.Size;
+            Location = other.Location;
         }
     }
 

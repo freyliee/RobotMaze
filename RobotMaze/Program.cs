@@ -1,5 +1,7 @@
 namespace RobotMaze;
 
+using View;
+
 static class Program
 {
     [STAThread]
