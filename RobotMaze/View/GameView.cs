@@ -2,9 +2,24 @@ namespace RobotMaze;
 
 public class GameView
 {
-    public void Draw(Graphics g, Robot robot, GameMap map)
+    public void Draw(Graphics g, Robot robot, GameMap map, TextureManager textures)
     {
-        int cellSize = 50;
+        float screenWidth = g.VisibleClipBounds.Width;
+        float screenHeight = g.VisibleClipBounds.Height;
+
+        float targetWidth = screenWidth * 0.65f;
+        float targetHeight = screenHeight * 0.65f;
+
+        float cellSizeX = targetWidth / map.Width;
+        float cellSizeY = targetHeight / map.Height;
+
+        float cellSize = Math.Min(cellSizeX, cellSizeY);
+
+        float mapWidthPx = map.Width * cellSize;
+        float mapHeightPx = map.Height * cellSize;
+        
+        float offsetX = (screenWidth - mapWidthPx) / 2;
+        float offsetY = (screenHeight - mapHeightPx) / 2;
 
         for (int x = 0; x < map.Width; x++)
         {
@@ -12,11 +27,11 @@ public class GameView
             {
                 if (map.Tiles[x, y] == TileType.Wall)
                 {
-                    g.FillRectangle(Brushes.Red, x * cellSize, y * cellSize, cellSize, cellSize);
+                    g.FillRectangle(Brushes.Red, offsetX + x * cellSize, offsetY + y * cellSize, cellSize, cellSize);
                 }
                 if (map.Tiles[x, y] == TileType.Goal)
                 {
-                    g.FillRectangle(Brushes.Green, x * cellSize, y * cellSize, cellSize, cellSize);
+                    g.FillRectangle(Brushes.Green, offsetX + x * cellSize, offsetY + y * cellSize, cellSize, cellSize);
                 }
             }
         }
@@ -24,14 +39,14 @@ public class GameView
         Pen pen = new Pen(Color.LightGray);
         for (int i = 0; i <= map.Width; i++)
         {
-            g.DrawLine(pen, i * cellSize, 0, i * cellSize, map.Height * cellSize);
+            g.DrawLine(pen, offsetX + i * cellSize, offsetY, offsetX + i * cellSize, offsetY + map.Height * cellSize);
         }
         for (int i = 0; i <= map.Height; i++)
         {
-            g.DrawLine(pen, 0, i * cellSize, map.Width * cellSize, i * cellSize);
+            g.DrawLine(pen, offsetX, offsetY + i * cellSize, offsetX + map.Width * cellSize, offsetY + i * cellSize);
         }
 
-        g.FillRectangle(Brushes.Blue, robot.X * cellSize + 5, robot.Y * cellSize + 5, cellSize - 10, cellSize - 10);
+        g.FillRectangle(Brushes.Blue, offsetX + robot.X * cellSize + cellSize / 10, offsetY + robot.Y * cellSize + cellSize / 10, cellSize - cellSize / 5, cellSize - cellSize / 5);
         
         int dirX = 0;
         int dirY = 0;
@@ -40,9 +55,10 @@ public class GameView
         if (robot.Direction == 2) dirY = 1;
         if (robot.Direction == 3) dirX = -1;
         
+        float indicatorSize = cellSize / 5;
         g.FillRectangle(Brushes.White, 
-            robot.X * cellSize + cellSize / 2 + dirX * 15 - 5, 
-            robot.Y * cellSize + cellSize / 2 + dirY * 15 - 5, 
-            10, 10);
+            offsetX + robot.X * cellSize + cellSize / 2 + dirX * (cellSize / 3) - indicatorSize / 2, 
+            offsetY + robot.Y * cellSize + cellSize / 2 + dirY * (cellSize / 3) - indicatorSize / 2, 
+            indicatorSize, indicatorSize);
     }
 }

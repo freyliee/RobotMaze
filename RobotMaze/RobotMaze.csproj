@@ -9,6 +9,13 @@
     </PropertyGroup>
 
     <ItemGroup>
+      <None Update="Assets\Textures\**">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="Assets\Textures\" />
       <Folder Include="Controller\" />
     </ItemGroup>
 

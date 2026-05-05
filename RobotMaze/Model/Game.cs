@@ -3,23 +3,20 @@ namespace RobotMaze;
 public class Game
 {
     private readonly GameView view;
+    public TextureManager Textures { get; }
     public Robot Robot { get; }
     public GameMap Map { get; }
     private Keys? pendingKey;
     
-    public Game()
+    public Action OnGoalReached;
+    
+    public Game(LevelData level)
     {
         view = new GameView();
-        Robot = new Robot(1, 1);
+        Textures = new TextureManager();
+        Robot = new Robot(level.StartX, level.StartY);
         
-        Map = new GameMap(new TileType[,]
-        {
-            { TileType.Wall, TileType.Wall, TileType.Wall, TileType.Floor, TileType.Floor },
-            { TileType.Floor, TileType.Floor, TileType.Floor, TileType.Floor, TileType.Floor },
-            { TileType.Wall, TileType.Wall, TileType.Floor, TileType.Wall, TileType.Wall },
-            { TileType.Floor, TileType.Floor, TileType.Floor, TileType.Floor, TileType.Goal },
-            { TileType.Wall, TileType.Wall, TileType.Wall, TileType.Wall, TileType.Wall }
-        });
+        Map = new GameMap(level.Map);
     }
 
     public void Update()
@@ -32,8 +29,10 @@ public class Game
         
         if (Map.Tiles[Robot.X, Robot.Y] == TileType.Goal)
         {
-            Console.WriteLine("Цель достигнута!");
-            Application.Exit();
+            if (OnGoalReached != null)
+            {
+                OnGoalReached();
+            }
         }
     }
 
@@ -74,7 +73,7 @@ public class Game
 
     public void Draw(Graphics g)
     {
-        view.Draw(g, Robot, Map);
+        view.Draw(g, Robot, Map, Textures);
     }
 
     public void HandleKey(Keys key)
