@@ -6,6 +6,8 @@ public class Robot
 {
     public int X { get; private set; }
     public int Y { get; private set; }
+    public float VisualX { get; set; }
+    public float VisualY { get; set; }
     public int Direction { get; private set; }
     public IRobotModule[] Modules { get; }
 
@@ -13,6 +15,8 @@ public class Robot
     {
         X = x;
         Y = y;
+        VisualX = x;
+        VisualY = y;
         Direction = 0;
         Modules = new IRobotModule[moduleSlots];
     }

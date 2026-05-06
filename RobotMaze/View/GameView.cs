@@ -71,7 +71,7 @@ public class GameView
             g.DrawLine(pen, offsetX, offsetY + i * cellSize, offsetX + map.Width * cellSize, offsetY + i * cellSize);
         }
 
-        g.FillRectangle(Brushes.Blue, offsetX + robot.X * cellSize + cellSize / 10, offsetY + robot.Y * cellSize + cellSize / 10, cellSize - cellSize / 5, cellSize - cellSize / 5);
+        g.FillRectangle(Brushes.Blue, offsetX + robot.VisualX * cellSize + cellSize / 10, offsetY + robot.VisualY * cellSize + cellSize / 10, cellSize - cellSize / 5, cellSize - cellSize / 5);
         
         int dirX = 0;
         int dirY = 0;
@@ -82,8 +82,8 @@ public class GameView
         
         float indicatorSize = cellSize / 5;
         g.FillRectangle(Brushes.White, 
-            offsetX + robot.X * cellSize + cellSize / 2 + dirX * (cellSize / 3) - indicatorSize / 2, 
-            offsetY + robot.Y * cellSize + cellSize / 2 + dirY * (cellSize / 3) - indicatorSize / 2, 
+            offsetX + robot.VisualX * cellSize + cellSize / 2 + dirX * (cellSize / 3) - indicatorSize / 2, 
+            offsetY + robot.VisualY * cellSize + cellSize / 2 + dirY * (cellSize / 3) - indicatorSize / 2, 
             indicatorSize, indicatorSize);
 
         float slotSize = bottomPanelHeight * 0.8f;
@@ -186,6 +186,10 @@ public class GameView
         g.FillRectangle(Brushes.LightCoral, restartBtnX, restartBtnY, restartBtnWidth, restartBtnHeight);
         g.DrawRectangle(Pens.Black, restartBtnX, restartBtnY, restartBtnWidth, restartBtnHeight);
         g.DrawString("РЕСТАРТ", new Font("Arial", 10, FontStyle.Bold), Brushes.Black, restartBtnX + 10, restartBtnY + 10);
+
+        Font titleFont = new Font("Arial", 20, FontStyle.Bold);
+        SizeF titleSize = g.MeasureString(game.LevelName, titleFont);
+        g.DrawString(game.LevelName, titleFont, Brushes.Black, (screenWidth - titleSize.Width) / 2, 20);
 
         if (hoveredModule != null && draggingModule == null)
         {
