@@ -81,11 +81,19 @@ public partial class GameForm : Form
             controller.Update();
             if (!IsDisposed) Invalidate();
         };
-        timer.Start();
+
+        if (level.Name == "Обучение")
+        {
+            ShowTutorialPanel();
+        }
+        else
+        {
+            timer.Start();
+        }
 
         KeyDown += (s, e) =>
         {
-            if (Controls.OfType<Panel>().Any(p => p.BorderStyle == BorderStyle.FixedSingle))
+            if (Controls.OfType<Panel>().Any(p => p.BorderStyle == BorderStyle.FixedSingle || p.BackColor.A < 255))
             {
                 return;
             }
@@ -160,6 +168,10 @@ public partial class GameForm : Form
         MouseDown += (s, e) =>
         {
             if (game.IsExecuting) return;
+            if (Controls.OfType<Panel>().Any(p => p.BorderStyle == BorderStyle.FixedSingle || p.BackColor.A < 255))
+            {
+                return;
+            }
             float screenWidth = Width;
             float screenHeight = Height;
             float leftPanelWidth = screenWidth * 0.15f;
@@ -312,9 +324,12 @@ public partial class GameForm : Form
         base.OnResize(e);
         foreach (Control c in Controls)
         {
-            if (c is Panel popup && popup.BorderStyle == BorderStyle.FixedSingle)
+            if (c is Panel p)
             {
-                popup.Location = new Point((Width - popup.Width) / 2, (Height - popup.Height) / 2);
+                if (p.BorderStyle == BorderStyle.FixedSingle || p.BackColor.A < 255)
+                {
+                    p.Location = new Point((Width - p.Width) / 2, (Height - p.Height) / 2);
+                }
             }
         }
     }
@@ -361,5 +376,47 @@ public partial class GameForm : Form
 
         Controls.Add(popup);
         popup.BringToFront();
+    }
+
+    private void ShowTutorialPanel()
+    {
+        Panel tutorialPanel = new Panel();
+        tutorialPanel.Size = new Size(600, 300);
+        tutorialPanel.BackColor = Color.FromArgb(200, 0, 0, 0);
+        tutorialPanel.Location = new Point((Width - tutorialPanel.Width) / 2, (Height - tutorialPanel.Height) / 2);
+
+        Label tutorialText = new Label();
+        tutorialText.Text = "Для перемещения робота перетащите модули из левой панели в нижние слоты. " +
+                            "Затем нажмите кнопку \"ЗАПУСК\" в нижнем правом углу. " +
+                            "Робот исполнит команды в заданной последовательности. " +
+                            "После исполнения команды модуль удаляется. " +
+                            "На карте есть дополнительные модули. " +
+                            "Ваша цель - добраться до финишной точки.";
+        tutorialText.ForeColor = Color.White;
+        tutorialText.Font = new Font("Arial", 14, FontStyle.Bold);
+        tutorialText.TextAlign = ContentAlignment.MiddleCenter;
+        tutorialText.Dock = DockStyle.Fill;
+        tutorialText.Padding = new Padding(20, 20, 20, 80);
+        tutorialPanel.Controls.Add(tutorialText);
+
+        Button startBtn = new Button();
+        startBtn.Text = "Начать";
+        startBtn.Size = new Size(120, 40);
+        startBtn.Font = new Font("Arial", 12, FontStyle.Bold);
+        startBtn.BackColor = Color.White;
+        startBtn.ForeColor = Color.Black;
+        startBtn.FlatStyle = FlatStyle.Flat;
+        startBtn.Location = new Point(tutorialPanel.Width - startBtn.Width - 20, tutorialPanel.Height - startBtn.Height - 20);
+        startBtn.Click += (s, e) =>
+        {
+            Controls.Remove(tutorialPanel);
+            timer.Start();
+            Focus();
+        };
+        tutorialPanel.Controls.Add(startBtn);
+
+        Controls.Add(tutorialPanel);
+        tutorialPanel.BringToFront();
+        startBtn.BringToFront();
     }
 }
