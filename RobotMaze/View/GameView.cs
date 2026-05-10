@@ -36,42 +36,129 @@ public class GameView
         float offsetX = (screenWidth - mapWidthPx) / 2;
         float offsetY = (screenHeight - mapHeightPx) / 2;
 
+        Image wallTexture = textures.GetTexture("wall.jpg");
+        Image grassTexture = textures.GetTexture("grass.png");
+        Image spikesTexture = textures.GetTexture("spikes.jpg");
+        Image puddleTexture = textures.GetTexture("water.jpg");
+        Image bridgeTexture = textures.GetTexture("bridge.png");
+        Image finishTexture = textures.GetTexture("finish.png");
+
+        if (grassTexture != null)
+        {
+            using (TextureBrush grassBrush = new TextureBrush(grassTexture))
+            {
+                g.FillRectangle(grassBrush, 0, 0, screenWidth, screenHeight);
+            }
+        }
+        else
+        {
+            g.Clear(Color.FromArgb(255, 100, 200, 100));
+        }
+
         for (int x = 0; x < map.Width; x++)
         {
             for (int y = 0; y < map.Height; y++)
             {
                 if (map.Tiles[x, y] == TileType.Wall)
                 {
-                    g.FillRectangle(Brushes.Red, offsetX + x * cellSize, offsetY + y * cellSize, cellSize, cellSize);
+                    if (wallTexture != null)
+                    {
+                        g.DrawImage(wallTexture, offsetX + x * cellSize, offsetY + y * cellSize, cellSize, cellSize);
+                    }
+                    else
+                    {
+                        g.FillRectangle(Brushes.Red, offsetX + x * cellSize, offsetY + y * cellSize, cellSize, cellSize);
+                    }
                 }
                 if (map.Tiles[x, y] == TileType.Goal)
                 {
-                    g.FillRectangle(Brushes.Green, offsetX + x * cellSize, offsetY + y * cellSize, cellSize, cellSize);
+                    if (finishTexture != null)
+                    {
+                        g.DrawImage(finishTexture, offsetX + x * cellSize, offsetY + y * cellSize, cellSize, cellSize);
+                    }
+                    else
+                    {
+                        g.FillRectangle(Brushes.Green, offsetX + x * cellSize, offsetY + y * cellSize, cellSize, cellSize);
+                    }
                 }
                 if (map.Tiles[x, y] == TileType.Spikes)
                 {
-                    g.FillRectangle(Brushes.DarkGray, offsetX + x * cellSize, offsetY + y * cellSize, cellSize, cellSize);
+                    if (spikesTexture != null)
+                    {
+                        g.DrawImage(spikesTexture, offsetX + x * cellSize, offsetY + y * cellSize, cellSize, cellSize);
+                    }
+                    else
+                    {
+                        g.FillRectangle(Brushes.DarkGray, offsetX + x * cellSize, offsetY + y * cellSize, cellSize, cellSize);
+                    }
+                }
+                if (map.Tiles[x, y] == TileType.Puddle)
+                {
+                    if (puddleTexture != null)
+                    {
+                        g.DrawImage(puddleTexture, offsetX + x * cellSize, offsetY + y * cellSize, cellSize, cellSize);
+                    }
+                    else
+                    {
+                        g.FillRectangle(Brushes.Blue, offsetX + x * cellSize, offsetY + y * cellSize, cellSize, cellSize);
+                    }
+                }
+
+                if (map.Bridges[x, y].HasValue)
+                {
+                    if (bridgeTexture != null)
+                    {
+                        float centerX = offsetX + x * cellSize + cellSize / 2;
+                        float centerY = offsetY + y * cellSize + cellSize / 2;
+                        var state = g.Save();
+                        g.TranslateTransform(centerX, centerY);
+                        g.RotateTransform(map.Bridges[x, y].Value * 90 + 180);
+                        g.DrawImage(bridgeTexture, -cellSize / 2, -cellSize / 2, cellSize, cellSize);
+                        g.Restore(state);
+                    }
+                    else
+                    {
+                        g.FillRectangle(Brushes.SaddleBrown, offsetX + x * cellSize + cellSize / 4, offsetY + y * cellSize + cellSize / 4, cellSize / 2, cellSize / 2);
+                    }
                 }
 
                 Point p = new Point(x, y);
                 if (game.MapModules.ContainsKey(p))
                 {
-                    g.FillEllipse(Brushes.Orange, offsetX + x * cellSize + cellSize/4, offsetY + y * cellSize + cellSize/4, cellSize/2, cellSize/2);
+                    IRobotModule mapModule = game.MapModules[p];
+                    Image modImg = textures.GetTexture(mapModule.TextureName);
+                    if (modImg != null)
+                    {
+                        g.DrawImage(modImg, offsetX + x * cellSize + cellSize / 4, offsetY + y * cellSize + cellSize / 4, cellSize / 2, cellSize / 2);
+                    }
+                    else
+                    {
+                        g.FillEllipse(Brushes.Orange, offsetX + x * cellSize + cellSize / 4, offsetY + y * cellSize + cellSize / 4, cellSize / 2, cellSize / 2);
+                    }
                 }
             }
         }
 
-        Pen pen = new Pen(Color.LightGray);
-        for (int i = 0; i <= map.Width; i++)
-        {
-            g.DrawLine(pen, offsetX + i * cellSize, offsetY, offsetX + i * cellSize, offsetY + map.Height * cellSize);
-        }
-        for (int i = 0; i <= map.Height; i++)
-        {
-            g.DrawLine(pen, offsetX, offsetY + i * cellSize, offsetX + map.Width * cellSize, offsetY + i * cellSize);
-        }
 
-        g.FillRectangle(Brushes.Blue, offsetX + robot.VisualX * cellSize + cellSize / 10, offsetY + robot.VisualY * cellSize + cellSize / 10, cellSize - cellSize / 5, cellSize - cellSize / 5);
+        Image robotTexture = textures.GetTexture("robot.png");
+        if (robotTexture != null)
+        {
+            float centerX = offsetX + robot.VisualX * cellSize + cellSize / 2;
+            float centerY = offsetY + robot.VisualY * cellSize + cellSize / 2;
+            float robotSize = cellSize - cellSize / 5;
+
+            var state = g.Save();
+            g.TranslateTransform(centerX, centerY);
+            
+            g.RotateTransform(robot.Direction * 90 + 180);
+            
+            g.DrawImage(robotTexture, -robotSize / 2, -robotSize / 2, robotSize, robotSize);
+            g.Restore(state);
+        }
+        else
+        {
+            g.FillRectangle(Brushes.Blue, offsetX + robot.VisualX * cellSize + cellSize / 10, offsetY + robot.VisualY * cellSize + cellSize / 10, cellSize - cellSize / 5, cellSize - cellSize / 5);
+        }
         
         int dirX = 0;
         int dirY = 0;
@@ -79,12 +166,6 @@ public class GameView
         if (robot.Direction == 1) dirX = 1;
         if (robot.Direction == 2) dirY = 1;
         if (robot.Direction == 3) dirX = -1;
-        
-        float indicatorSize = cellSize / 5;
-        g.FillRectangle(Brushes.White, 
-            offsetX + robot.VisualX * cellSize + cellSize / 2 + dirX * (cellSize / 3) - indicatorSize / 2, 
-            offsetY + robot.VisualY * cellSize + cellSize / 2 + dirY * (cellSize / 3) - indicatorSize / 2, 
-            indicatorSize, indicatorSize);
 
         float slotSize = bottomPanelHeight * 0.8f;
         float slotsTotalWidth = robot.Modules.Length * slotSize + (robot.Modules.Length - 1) * 10;
@@ -102,7 +183,7 @@ public class GameView
             }
             else
             {
-                g.DrawRectangle(Pens.Black, x, slotsStartY, slotSize, slotSize);
+                g.DrawRectangle(Pens.White, x, slotsStartY, slotSize, slotSize);
             }
 
             if (robot.Modules[i] != null && robot.Modules[i] != draggingModule)
@@ -189,7 +270,7 @@ public class GameView
 
         Font titleFont = new Font("Arial", 20, FontStyle.Bold);
         SizeF titleSize = g.MeasureString(game.LevelName, titleFont);
-        g.DrawString(game.LevelName, titleFont, Brushes.Black, (screenWidth - titleSize.Width) / 2, 20);
+        g.DrawString(game.LevelName, titleFont, Brushes.White, (screenWidth - titleSize.Width) / 2, 20);
 
         if (hoveredModule != null && draggingModule == null)
         {

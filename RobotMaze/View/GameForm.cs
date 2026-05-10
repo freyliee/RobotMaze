@@ -1,5 +1,6 @@
 using RobotMaze.Model.RobotModules;
 using Timer = System.Windows.Forms.Timer;
+using NAudio.Wave;
 
 namespace RobotMaze.View;
 
@@ -27,6 +28,8 @@ public partial class GameForm : Form
         game = new Game(level);
         controller = new GameController(game);
         view = new GameView();
+
+        AudioManager.PlayBackgroundMusic();
         
         game.OnGoalReached += () =>
         {
@@ -155,10 +158,12 @@ public partial class GameForm : Form
                 timer.Stop();
             }
 
-            // game.HandleKey(e.KeyCode);
         };
         
-        FormClosed += (s, e) => Application.Exit();
+        FormClosed += (s, e) =>
+        {
+            Application.Exit();
+        };
         
         DoubleBuffered = true;
 

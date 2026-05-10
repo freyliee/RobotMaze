@@ -11,13 +11,13 @@ public class Robot
     public int Direction { get; private set; }
     public IRobotModule[] Modules { get; }
 
-    public Robot(int x, int y, int moduleSlots)
+    public Robot(int x, int y, int direction, int moduleSlots)
     {
         X = x;
         Y = y;
         VisualX = x;
         VisualY = y;
-        Direction = 0;
+        Direction = direction;
         Modules = new IRobotModule[moduleSlots];
     }
 

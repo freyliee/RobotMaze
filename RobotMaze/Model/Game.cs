@@ -27,7 +27,7 @@ public class Game
     {
         LevelName = level.Name;
         Textures = new TextureManager();
-        Robot = new Robot(level.StartX, level.StartY, level.ModuleSlots);
+        Robot = new Robot(level.StartX, level.StartY, level.StartDirection, level.ModuleSlots);
         
         Map = new GameMap(level.Map);
         AvailableModules = new List<IRobotModule>(level.InitialModules);
@@ -64,7 +64,7 @@ public class Game
                 }
             }
 
-            if (Map.Tiles[Robot.X, Robot.Y] == TileType.Spikes)
+            if (Map.Tiles[Robot.X, Robot.Y] == TileType.Spikes || (Map.Tiles[Robot.X, Robot.Y] == TileType.Puddle && Map.Bridges[Robot.X, Robot.Y] == null))
             {
                 if (OnGameOver != null)
                 {
@@ -97,7 +97,7 @@ public class Game
             }
         }
 
-        bool robotOnTarget = Map.Tiles[Robot.X, Robot.Y] == TileType.Goal || Map.Tiles[Robot.X, Robot.Y] == TileType.Spikes;
+        bool robotOnTarget = Map.Tiles[Robot.X, Robot.Y] == TileType.Goal || Map.Tiles[Robot.X, Robot.Y] == TileType.Spikes || (Map.Tiles[Robot.X, Robot.Y] == TileType.Puddle && Map.Bridges[Robot.X, Robot.Y] == null);
 
         if (AvailableModules.Count == 0 && !hasModulesInSlots && !robotOnTarget)
         {
@@ -110,14 +110,14 @@ public class Game
 
     private void UpdateExecution()
     {
-        if (CurrentModuleIndex >= Robot.Modules.Length || Robot.Modules[CurrentModuleIndex] == null)
-        {
-            FinishExecution();
-            return;
-        }
-
         if (!isMoving)
         {
+            if (CurrentModuleIndex >= Robot.Modules.Length || Robot.Modules[CurrentModuleIndex] == null)
+            {
+                FinishExecution();
+                return;
+            }
+
             prevX = Robot.X;
             prevY = Robot.Y;
             isMoving = true;
@@ -131,34 +131,36 @@ public class Game
             }
         }
 
-        executionTimer++;
-        float t = (float)executionTimer / DelayFrames;
-        if (t > 1) t = 1;
-
-        float moveStart = 0.3f;
-        float moveEnd = 0.7f;
-        float moveT = 0;
-
-        if (t > moveEnd) moveT = 1;
-        else if (t > moveStart) moveT = (t - moveStart) / (moveEnd - moveStart);
-
-        float easeT = moveT * moveT * (3 - 2 * moveT);
-
-        Robot.VisualX = prevX + (Robot.X - prevX) * easeT;
-        Robot.VisualY = prevY + (Robot.Y - prevY) * easeT;
-
-        if (executionTimer >= DelayFrames)
+        if (isMoving)
         {
-            isMoving = false;
-            Robot.VisualX = Robot.X;
-            Robot.VisualY = Robot.Y;
+            executionTimer++;
+            float t = (float)executionTimer / DelayFrames;
+            if (t > 1) t = 1;
+
+            float moveStart = 0.3f;
+            float moveEnd = 0.7f;
+            float moveT = 0;
+
+            if (t > moveEnd) moveT = 1;
+            else if (t > moveStart) moveT = (t - moveStart) / (moveEnd - moveStart);
+
+            float easeT = moveT * moveT * (3 - 2 * moveT);
+
+            Robot.VisualX = prevX + (Robot.X - prevX) * easeT;
+            Robot.VisualY = prevY + (Robot.Y - prevY) * easeT;
+
+            if (executionTimer >= DelayFrames)
+            {
+                isMoving = false;
+                Robot.VisualX = Robot.X;
+                Robot.VisualY = Robot.Y;
+            }
         }
     }
 
     private void FinishExecution()
     {
         IsExecuting = false;
-        isMoving = false;
         CurrentModuleIndex = -1;
         
         for (int i = 0; i < Robot.Modules.Length; i++)
@@ -166,8 +168,4 @@ public class Game
             Robot.Modules[i] = null;
         }
     }
-
-    // public void HandleKey(Keys key)
-    // {
-    // }
 }

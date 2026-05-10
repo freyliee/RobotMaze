@@ -12,22 +12,26 @@ public class LevelData
     public Dictionary<Point, IRobotModule> MapModules { get; set; }
     public int ModuleSlots { get; set; }
 
-    public LevelData(string name, TileType[,] map, int startX, int startY, int slots = 5)
+    public int StartDirection { get; set; }
+
+    public LevelData(string name, TileType[,] map, int startX, int startY, int startDirection = 0, int slots = 5)
     {
         Name = name;
         Map = map;
         StartX = startX;
         StartY = startY;
+        StartDirection = startDirection;
         InitialModules = new List<IRobotModule>();
         MapModules = new Dictionary<Point, IRobotModule>();
         ModuleSlots = slots;
     }
 
-    public LevelData(string name, string[] mapData, int startX, int startY, int slots = 5)
+    public LevelData(string name, string[] mapData, int startX, int startY, int startDirection = 0, int slots = 5)
     {
         Name = name;
         StartX = startX;
         StartY = startY;
+        StartDirection = startDirection;
         InitialModules = new List<IRobotModule>();
         MapModules = new Dictionary<Point, IRobotModule>();
         ModuleSlots = slots;
@@ -45,6 +49,7 @@ public class LevelData
                 else if (c == 'F') Map[x, y] = TileType.Floor;
                 else if (c == 'G') Map[x, y] = TileType.Goal;
                 else if (c == 'S') Map[x, y] = TileType.Spikes;
+                else if (c == 'P') Map[x, y] = TileType.Puddle;
             }
         }
     }

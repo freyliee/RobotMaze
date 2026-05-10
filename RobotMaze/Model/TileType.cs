@@ -5,5 +5,6 @@ public enum TileType
     Floor,
     Wall,
     Goal,
-    Spikes
+    Spikes,
+    Puddle
 }

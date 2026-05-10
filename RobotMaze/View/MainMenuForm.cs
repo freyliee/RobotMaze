@@ -1,18 +1,37 @@
+using RobotMaze.Model;
+using Timer = System.Windows.Forms.Timer;
+
 namespace RobotMaze.View;
 
 public class MainMenuForm : Form
 {
+    private readonly TextureManager textureManager;
+    private readonly Timer animationTimer;
+
     public MainMenuForm()
     {
+        textureManager = new TextureManager();
+        
+        AudioManager.StopBackgroundMusic();
         FormBorderStyle = FormBorderStyle.None;
         WindowState = FormWindowState.Maximized;
         BackColor = Color.White;
         DoubleBuffered = true;
         KeyPreview = true;
 
+        animationTimer = new Timer();
+        animationTimer.Interval = 16;
+        animationTimer.Tick += (s, e) =>
+        {
+            MenuAnimationManager.Instance.Update(Width, Height);
+            Invalidate();
+        };
+        animationTimer.Start();
+
         Label title = new Label();
         title.Text = "RobotMaze";
-        title.ForeColor = Color.Black;
+        title.ForeColor = Color.White;
+        title.BackColor = Color.Transparent;
         title.Font = new Font("Arial", 48, FontStyle.Bold);
         title.AutoSize = true;
         title.Location = new Point((Width - title.Width) / 2, Height / 4);
@@ -20,6 +39,8 @@ public class MainMenuForm : Form
 
         Button playButton = new Button();
         playButton.Text = "Играть";
+        playButton.BackColor = Color.White;
+        playButton.FlatStyle = FlatStyle.Flat;
         playButton.Size = new Size(200, 50);
         playButton.Location = new Point((Width - playButton.Width) / 2, Height / 2);
         playButton.Click += (s, e) => {
@@ -32,6 +53,8 @@ public class MainMenuForm : Form
 
         Button exitButton = new Button();
         exitButton.Text = "Выход";
+        exitButton.BackColor = Color.White;
+        exitButton.FlatStyle = FlatStyle.Flat;
         exitButton.Size = new Size(200, 50);
         exitButton.Location = new Point((Width - exitButton.Width) / 2, Height / 2 + 70);
         exitButton.Click += (s, e) => Application.Exit();
@@ -59,7 +82,18 @@ public class MainMenuForm : Form
             }
         };
 
-        FormClosed += (s, e) => Application.Exit();
+        FormClosed += (s, e) =>
+        {
+            animationTimer.Stop();
+            animationTimer.Dispose();
+            Application.Exit();
+        };
+    }
+
+    protected override void OnPaint(PaintEventArgs e)
+    {
+        base.OnPaint(e);
+        MenuAnimationManager.Instance.Draw(e.Graphics, textureManager, Width, Height);
     }
 
     public void ApplyState(Form other)
@@ -95,6 +129,8 @@ public class MainMenuForm : Form
             {
                 b.Size = new Size((int)(200 * scale), (int)(50 * scale));
                 b.Font = new Font("Arial", 12 * scale);
+                b.BackColor = Color.White;
+                b.FlatStyle = FlatStyle.Flat;
                 if (b.Text == "Играть") b.Location = new Point((Width - b.Width) / 2, Height / 2);
                 if (b.Text == "Выход") b.Location = new Point((Width - b.Width) / 2, Height / 2 + b.Height + 20);
             }

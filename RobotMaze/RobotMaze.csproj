@@ -12,10 +12,13 @@
       <None Update="Assets\Textures\**">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
+      <None Update="Assets\Music\**">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
     </ItemGroup>
 
     <ItemGroup>
-      <Folder Include="Assets\Textures\" />
+      <PackageReference Include="NAudio" Version="2.3.0" />
     </ItemGroup>
 
 </Project>

@@ -1,19 +1,32 @@
-namespace RobotMaze.View;
+using RobotMaze.Model;
+using Timer = System.Windows.Forms.Timer;
 
-using Model;
+namespace RobotMaze.View;
 
 public class LevelSelectForm : Form
 {
     private TextureManager textureManager;
+    private readonly Timer animationTimer;
 
     public LevelSelectForm()
     {
+        AudioManager.StopBackgroundMusic();
         FormBorderStyle = FormBorderStyle.None;
         WindowState = FormWindowState.Maximized;
         BackColor = Color.DarkSlateBlue;
         DoubleBuffered = true;
         KeyPreview = true;
         textureManager = new TextureManager();
+
+        animationTimer = new Timer();
+        animationTimer.Interval = 16;
+        animationTimer.Tick += (s, e) =>
+        {
+            MenuAnimationManager.Instance.Update(Width, Height);
+            Invalidate();
+        };
+        animationTimer.Start();
+
         List<LevelData> allLevels = LevelManager.GetLevels();
         string[] levelNames = { "Обучение", "Уровень 1", "Уровень 2", "Уровень 3", "Уровень 4", "Уровень 5" };
         
@@ -30,19 +43,22 @@ public class LevelSelectForm : Form
             if (i > LevelManager.UnlockedLevelIndex || levelData == null)
             {
                 btn.Enabled = false;
-                btn.BackColor = Color.Gray;
+                btn.BackColor = Color.FromArgb(150, Color.Gray);
+                btn.FlatStyle = FlatStyle.Flat;
                 Image lockImg = textureManager.GetTexture("lock.png");
                 if (lockImg != null) btn.Image = lockImg;
             }
             else if (i <= LevelManager.CompletedLevelIndex)
             {
-                btn.BackColor = Color.LightGreen;
+                btn.BackColor = Color.FromArgb(200, Color.LightGreen);
+                btn.FlatStyle = FlatStyle.Flat;
                 Image levelImg = textureManager.GetTexture("level" + i + ".png");
                 if (levelImg != null) btn.Image = levelImg;
             }
             else
             {
-                btn.BackColor = Color.LightSkyBlue;
+                btn.BackColor = Color.FromArgb(200, Color.LightSkyBlue);
+                btn.FlatStyle = FlatStyle.Flat;
                 Image levelImg = textureManager.GetTexture("level" + i + ".png");
                 if (levelImg != null) btn.Image = levelImg;
             }
@@ -62,7 +78,9 @@ public class LevelSelectForm : Form
 
         Button backButton = new Button();
         backButton.Text = "Назад";
-        backButton.ForeColor = Color.White;
+        backButton.ForeColor = Color.Black;
+        backButton.BackColor = Color.White;
+        backButton.FlatStyle = FlatStyle.Flat;
         backButton.Size = new Size(100, 40);
         backButton.Location = new Point(50, 50);
         backButton.Click += (s, e) => {
@@ -98,7 +116,18 @@ public class LevelSelectForm : Form
             }
         };
 
-        FormClosed += (s, e) => Application.Exit();
+        FormClosed += (s, e) =>
+        {
+            animationTimer.Stop();
+            animationTimer.Dispose();
+            Application.Exit();
+        };
+    }
+
+    protected override void OnPaint(PaintEventArgs e)
+    {
+        base.OnPaint(e);
+        MenuAnimationManager.Instance.Draw(e.Graphics, textureManager, Width, Height);
     }
 
     public void ApplyState(Form other)

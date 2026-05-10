@@ -4,7 +4,7 @@ public class BatteringRamModule : IRobotModule
 {
     public string Name => "Таран";
     public string Description => "Движение до врезания в стену";
-    public string TextureName => "ram_module.png";
+    public string TextureName => "module_taran.png";
     public string TooltipTextureName => "tooltip_bg.png";
     
     public bool Execute(Robot robot, GameMap map)
