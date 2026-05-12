@@ -170,6 +170,26 @@ public partial class GameForm : Form
         int dragSourceIdx = -1; 
         bool isFromAvailable = false;
 
+        MouseWheel += (s, e) =>
+        {
+            if (e.X < Width * 0.15f)
+            {
+                game.InventoryScroll -= e.Delta;
+                if (game.InventoryScroll < 0) game.InventoryScroll = 0;
+                
+                float leftPanelWidth = Width * 0.15f;
+                float bottomPanelHeight = Height * 0.15f;
+                float moduleBoxSize = leftPanelWidth * 0.4f;
+                int rows = (game.AvailableModules.Count + 1) / 2;
+                float totalHeight = 50 + rows * (moduleBoxSize + 10);
+                float maxScroll = totalHeight - (Height - bottomPanelHeight);
+                if (maxScroll < 0) maxScroll = 0;
+                if (game.InventoryScroll > maxScroll) game.InventoryScroll = maxScroll;
+                
+                Invalidate();
+            }
+        };
+
         MouseDown += (s, e) =>
         {
             if (game.IsExecuting) return;
@@ -188,7 +208,7 @@ public partial class GameForm : Form
                 int col = i % 2;
                 int row = i / 2;
                 float moduleBoxX = (leftPanelWidth / 2 - moduleBoxSize) / 2 + col * (leftPanelWidth / 2);
-                float y = 50 + row * (moduleBoxSize + 10);
+                float y = 50 + row * (moduleBoxSize + 10) - game.InventoryScroll;
                 if (e.X >= moduleBoxX && e.X <= moduleBoxX + moduleBoxSize && e.Y >= y && e.Y <= y + moduleBoxSize)
                 {
                     draggingModule = game.AvailableModules[i];
@@ -267,7 +287,7 @@ public partial class GameForm : Form
                     int col = i % 2;
                     int row = i / 2;
                     float moduleBoxX = (leftPanelWidth / 2 - moduleBoxSize) / 2 + col * (leftPanelWidth / 2);
-                    float y = 50 + row * (moduleBoxSize + 10);
+                    float y = 50 + row * (moduleBoxSize + 10) - game.InventoryScroll;
                     if (e.X >= moduleBoxX && e.X <= moduleBoxX + moduleBoxSize && e.Y >= y && e.Y <= y + moduleBoxSize)
                     {
                         hoveredModule = game.AvailableModules[i];

@@ -211,12 +211,15 @@ public class GameView
         }
 
         float moduleBoxSize = leftPanelWidth * 0.4f;
+        var oldClip = g.Clip;
+        g.SetClip(new RectangleF(0, 0, leftPanelWidth, screenHeight - bottomPanelHeight));
+
         for (int i = 0; i < game.AvailableModules.Count; i++)
         {
             int col = i % 2;
             int row = i / 2;
             float moduleBoxX = (leftPanelWidth / 2 - moduleBoxSize) / 2 + col * (leftPanelWidth / 2);
-            float y = 50 + row * (moduleBoxSize + 10);
+            float y = 50 + row * (moduleBoxSize + 10) - game.InventoryScroll;
             
             if (game.AvailableModules[i] != draggingModule)
             {
@@ -234,6 +237,7 @@ public class GameView
                 }
             }
         }
+        g.Clip = oldClip;
 
         if (draggingModule != null)
         {

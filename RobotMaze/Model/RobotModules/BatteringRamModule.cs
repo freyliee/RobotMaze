@@ -20,6 +20,17 @@ public class BatteringRamModule : IRobotModule
         if (map.IsWalkable(nextX, nextY))
         {
             robot.MoveForward();
+            
+            int afterNextX = robot.X;
+            int afterNextY = robot.Y;
+            if (robot.Direction == 0) afterNextY--;
+            if (robot.Direction == 1) afterNextX++;
+            if (robot.Direction == 2) afterNextY++;
+            if (robot.Direction == 3) afterNextX--;
+
+            if (!map.IsWalkable(afterNextX, afterNextY))
+                return true;
+            
             return false;
         }
         return true;

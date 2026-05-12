@@ -10,11 +10,12 @@ public class Game
     public GameMap Map { get; }
     public List<IRobotModule> AvailableModules { get; }
     public Dictionary<Point, IRobotModule> MapModules { get; }
+    public float InventoryScroll { get; set; } = 0;
     
     public bool IsExecuting { get; private set; }
     public int CurrentModuleIndex { get; private set; } = -1;
     private int executionTimer = 0;
-    private const int DelayFrames = 30; 
+    private const int DelayFrames = 15; 
 
     private float prevX;
     private float prevY;
